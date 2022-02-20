@@ -1,0 +1,8 @@
+POST http://localhost:27001/users
+Content-Type: application/json
+Cookie: JSESSIONID=434FA3BB95D679FA6AD9FACB49AB5189;
+
+{
+  "username": "test-user",
+  "password": "pass"
+}

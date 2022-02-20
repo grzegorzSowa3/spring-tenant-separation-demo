@@ -1,0 +1,10 @@
+POST http://localhost:27001/tenants
+Content-Type: application/json
+
+{
+  "name": "Test Co.",
+  "admin": {
+    "username": "test-admin",
+    "password": "pass"
+  }
+}

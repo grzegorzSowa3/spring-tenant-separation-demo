@@ -1,0 +1,13 @@
+server.port: 27001
+predefined:
+  tenants:
+    - id: ad45e17b-7b26-44ab-bdea-773c4d6fc77c
+      name: Private Co.
+      admin:
+        username: private-admin
+        password: pass
+    - id: faece7ee-6524-4b27-b334-e5503df75696
+      name: Vision Co.
+      admin:
+        username: vision-admin
+        password: pass
