@@ -100,7 +100,6 @@ class TenantSeparationTests {
         result.andExpect(jsonPath(userByUsername, testUsers1().get(0).getUsername()).exists());
         result.andExpect(jsonPath(userByUsername, testUsers1().get(1).getUsername()).exists());
 
-        // TODO: make it pass
         //and: admin gets no users from other tenant
         result.andExpect(jsonPath(userByUsername, testUsers2().get(0).getUsername()).doesNotExist());
         result.andExpect(jsonPath(userByUsername, testUsers2().get(1).getUsername()).doesNotExist());
@@ -146,7 +145,6 @@ class TenantSeparationTests {
                 delete("/users/{userId}", targetUserId)
                         .session(admin));
 
-        // TODO: make it pass
         //then: admin gets response forbidden
         result.andExpect(status().isForbidden());
 

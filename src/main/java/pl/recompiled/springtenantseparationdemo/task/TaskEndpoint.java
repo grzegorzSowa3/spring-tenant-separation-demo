@@ -4,7 +4,9 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pl.recompiled.springtenantseparationdemo.security.TenantAware;
 import pl.recompiled.springtenantseparationdemo.security.user.TenantContext;
 
 import java.util.List;
@@ -25,12 +27,14 @@ public class TaskEndpoint {
     }
 
     @DeleteMapping("/{taskId}")
+    @PreAuthorize("@sameTenantChecker.check(#userId, 'pl.recompiled.springtenantseparationdemo.security.user.User')")
     public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId) {
         repository.deleteById(taskId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
+    @TenantAware
     public List<String> getAllTasks() {
         return repository.findAll().stream().map(Task::getTitle).collect(Collectors.toList());
     }

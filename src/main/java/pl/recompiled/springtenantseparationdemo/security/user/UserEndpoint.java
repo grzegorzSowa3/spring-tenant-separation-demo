@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pl.recompiled.springtenantseparationdemo.security.TenantAware;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.CreateUserDto;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.UserData;
 
@@ -31,12 +32,14 @@ class UserEndpoint {
     }
 
     @DeleteMapping("{userId}")
+    @PreAuthorize("@sameTenantChecker.check(#userId, 'pl.recompiled.springtenantseparationdemo.security.user.User')")
     public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
+    @TenantAware
     public Map<String, List<UserData>> getUsers() {
         return Collections.singletonMap("users",
                 userRepository.findAll().stream()
