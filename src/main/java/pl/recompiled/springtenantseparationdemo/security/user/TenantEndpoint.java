@@ -23,17 +23,6 @@ class TenantEndpoint {
 
     private final UserService userService;
 
-    @GetMapping
-    public ResponseEntity<GetTenantsResponse> getTenants() {
-        return ResponseEntity.ok(new GetTenantsResponse(userService.getTenants()));
-    }
-
-    @Data
-    @AllArgsConstructor
-    private static class GetTenantsResponse {
-        private List<TenantData> tenants;
-    }
-
     @PostMapping
     public ResponseEntity<TenantData> createTenant(@RequestBody CreateTenantDto dto) {
         final TenantData tenant = userService.createTenant(dto);

@@ -49,6 +49,19 @@ public class UserService implements UserDetailsService {
         return createUserWithAuthorities(TenantContext.getTenantId(), dto, Set.of(Authority.USER));
     }
 
+    public void deleteUser(String userId) {
+        userRepository.findById(UUID.fromString(userId)).ifPresent(userRepository::delete);
+    }
+
+    private UserData createUserWithAuthorities(String tenantId, CreateUserDto dto, Set<Authority> authorities) {
+        final User user = User.newInstance(
+                tenantId,
+                dto.getUsername(),
+                passwordEncoder.encode(dto.getPassword()),
+                authorities);
+        return userRepository.save(user).toData();
+    }
+
     private void createAdminIfNotExists(String tenantId, CreateUserDto dto) {
         final Optional<User> admin = userRepository.findByUsername(dto.getUsername());
         if (admin.isEmpty()) {
@@ -68,32 +81,9 @@ public class UserService implements UserDetailsService {
         return user.getAuthorities().contains(Authority.ADMIN) && user.getTenantId().equals(tenantId);
     }
 
-    private UserData createUserWithAuthorities(String tenantId, CreateUserDto dto, Set<Authority> authorities) {
-        final User user = User.newInstance(
-                tenantId,
-                dto.getUsername(),
-                passwordEncoder.encode(dto.getPassword()),
-                authorities);
-        return userRepository.save(user).toData();
-    }
-
     @Override
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("No user with such username!"));
     }
-
-    public void deleteUser(String userId) {
-        userRepository.findById(UUID.fromString(userId)).ifPresent(userRepository::delete);
-    }
-
-    public List<TenantData> getTenants() {
-        return Stream.concat(
-                predefinedTenants.values().stream(),
-                tenantRepository.findAll().stream()
-        )
-                .map(Tenant::toData)
-                .collect(Collectors.toList());
-    }
-
 }
