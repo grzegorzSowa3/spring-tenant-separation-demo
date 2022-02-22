@@ -4,7 +4,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import pl.recompiled.springtenantseparationdemo.security.user.PredefinedUsers.PredefinedTenant;
+import pl.recompiled.springtenantseparationdemo.security.user.PredefinedTenants.PredefinedTenant;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.CreateTenantDto;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.CreateUserDto;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.TenantData;
@@ -26,16 +26,16 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(PredefinedUsers predefinedUsers,
+    public UserService(PredefinedTenants predefinedTenants,
                        TenantRepository tenantRepository,
                        UserRepository userRepository,
                        PasswordEncoder passwordEncoder) {
         this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.predefinedTenants = predefinedUsers.getTenants().stream()
+        this.predefinedTenants = predefinedTenants.getTenants().stream()
                 .collect(Collectors.toMap(PredefinedTenant::getId, PredefinedTenant::getTenant));
-        predefinedUsers.getTenants()
+        predefinedTenants.getTenants()
                 .forEach(tenant -> createAdminIfNotExists(tenant.getId().toString(), tenant.getAdminUser()));
     }
 

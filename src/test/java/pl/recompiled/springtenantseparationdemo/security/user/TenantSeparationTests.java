@@ -14,7 +14,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import pl.recompiled.springtenantseparationdemo.security.user.PredefinedUsers.PredefinedTenant;
+import pl.recompiled.springtenantseparationdemo.security.user.PredefinedTenants.PredefinedTenant;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.CreateUserDto;
 
 import java.util.Arrays;
@@ -44,7 +44,7 @@ class TenantSeparationTests {
 
     @Autowired
     public TenantSeparationTests(MockMvc mockMvc,
-                                 PredefinedUsers properties,
+                                 PredefinedTenants properties,
                                  UserRepository userRepository) throws Exception {
         this.thisTenant = properties.getTenants().get(0);
         this.otherTenant = properties.getTenants().get(1);

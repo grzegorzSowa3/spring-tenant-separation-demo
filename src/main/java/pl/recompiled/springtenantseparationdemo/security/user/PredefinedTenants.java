@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 @Data
 @Component
 @ConfigurationProperties(prefix = "predefined")
-public class PredefinedUsers {
+public class PredefinedTenants {
 
     private List<PredefinedTenant> tenants;
 
