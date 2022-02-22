@@ -11,18 +11,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component
-public class SameTenantChecker {
+public class SameTenantValidator {
 
     private final Map<Class<?>, TypeAwareRepository<?>> repositories;
 
-    public SameTenantChecker(List<TypeAwareRepository<?>> repositories) {
+    public SameTenantValidator(List<TypeAwareRepository<?>> repositories) {
         this.repositories = new HashMap<>();
         for (TypeAwareRepository<?> repository : repositories) {
             this.repositories.put(repository.handles(), repository);
         }
     }
 
-    public boolean check(UUID id, String className) {
+    public boolean validate(UUID id, String className) {
         Class<?> type = parseClassName(className);
         final Optional<TenantAdherent> tenantAdherent = repositoryForType(type)
                 .findById(id)

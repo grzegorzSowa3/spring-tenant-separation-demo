@@ -32,7 +32,7 @@ class UserEndpoint {
     }
 
     @DeleteMapping("{userId}")
-    @PreAuthorize("@sameTenantChecker.check(#userId, 'pl.recompiled.springtenantseparationdemo.security.user.User')")
+    @PreAuthorize("@sameTenantValidator.validate(#userId, 'pl.recompiled.springtenantseparationdemo.security.user.User')")
     public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();

@@ -27,7 +27,7 @@ public class TaskEndpoint {
     }
 
     @DeleteMapping("/{taskId}")
-    @PreAuthorize("@sameTenantChecker.check(#userId, 'pl.recompiled.springtenantseparationdemo.security.user.User')")
+    @PreAuthorize("@sameTenantValidator.validate(#userId, 'pl.recompiled.springtenantseparationdemo.security.user.User')")
     public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId) {
         repository.deleteById(taskId);
         return ResponseEntity.noContent().build();
