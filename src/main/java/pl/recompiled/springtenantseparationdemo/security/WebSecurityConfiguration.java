@@ -20,7 +20,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
-    private final PredefinedTenants predefinedTenants;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
