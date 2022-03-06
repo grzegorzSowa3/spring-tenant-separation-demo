@@ -4,86 +4,47 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import pl.recompiled.springtenantseparationdemo.security.user.PredefinedTenants.PredefinedTenant;
-import pl.recompiled.springtenantseparationdemo.security.user.dto.CreateTenantDto;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.CreateUserDto;
-import pl.recompiled.springtenantseparationdemo.security.user.dto.TenantData;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.UserData;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class UserService implements UserDetailsService {
 
-    private final Map<UUID, Tenant> predefinedTenants;
-    private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(PredefinedTenants predefinedTenants,
-                       TenantRepository tenantRepository,
-                       UserRepository userRepository,
+    public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder) {
-        this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.predefinedTenants = predefinedTenants.getTenants().stream()
-                .collect(Collectors.toMap(PredefinedTenant::getId, PredefinedTenant::getTenant));
-        predefinedTenants.getTenants()
-                .forEach(tenant -> createAdminIfNotExists(tenant.getId().toString(), tenant.getAdminUser()));
-    }
-
-    public TenantData createTenant(CreateTenantDto dto) {
-        final Tenant tenant = tenantRepository.save(Tenant.newInstance(dto.getName()));
-        createUserWithAuthorities(tenant.getId().toString(), dto.getAdmin(), Set.of(Authority.ADMIN));
-        return tenant.toData();
     }
 
     public UserData createUser(CreateUserDto dto) {
-        return createUserWithAuthorities(TenantContext.getTenantId(), dto, Set.of(Authority.USER));
+        return createUserWithAuthorities(dto, Set.of(Authority.USER));
     }
 
     public void deleteUser(String userId) {
         userRepository.findById(UUID.fromString(userId)).ifPresent(userRepository::delete);
     }
 
-    private UserData createUserWithAuthorities(String tenantId, CreateUserDto dto, Set<Authority> authorities) {
+    public void createAdmin(CreateUserDto dto) {
+        createUserWithAuthorities(dto, Set.of(Authority.ADMIN));
+    }
+
+    private UserData createUserWithAuthorities(CreateUserDto dto, Set<Authority> authorities) {
         final User user = User.newInstance(
-                tenantId,
                 dto.getUsername(),
                 passwordEncoder.encode(dto.getPassword()),
                 authorities);
         return userRepository.save(user).toData();
     }
 
-    private void createAdminIfNotExists(String tenantId, CreateUserDto dto) {
-        final Optional<User> admin = userRepository.findByUsername(dto.getUsername());
-        if (admin.isEmpty()) {
-            createUserWithAuthorities(tenantId, dto, Set.of(Authority.ADMIN));
-        } else if (isTenantAdmin(admin.get(), tenantId)) {
-            throw new PredefinedAdminUsernameInvalidException("Admin username duplicate: " + admin.get().getUsername());
-        }
-    }
-
-    public static class PredefinedAdminUsernameInvalidException extends RuntimeException {
-        public PredefinedAdminUsernameInvalidException(String message) {
-            super(message);
-        }
-    }
-
-    private boolean isTenantAdmin(User user, String tenantId) {
-        return user.getAuthorities().contains(Authority.ADMIN) && user.getTenantId().equals(tenantId);
-    }
-
     @Override
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
+        return userRepository.findOne(User.byUsername(username))
                 .orElseThrow(() -> new UsernameNotFoundException("No user with such username!"));
     }
 }

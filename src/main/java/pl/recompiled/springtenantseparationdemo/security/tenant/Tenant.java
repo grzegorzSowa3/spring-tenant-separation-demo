@@ -1,33 +1,32 @@
-package pl.recompiled.springtenantseparationdemo.security.user;
+package pl.recompiled.springtenantseparationdemo.security.tenant;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Persistable;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.TenantData;
-import pl.recompiled.springtenantseparationdemo.security.user.dto.UserData;
 
 import javax.persistence.*;
-import java.util.UUID;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-class Tenant implements Persistable<UUID> {
+class Tenant implements Persistable<TenantId> {
 
     @Id
-    private UUID id;
+    @Embedded
+    private TenantId id;
     @Transient
     private boolean isNew;
     private String name;
 
     public static Tenant newInstance(String name) {
-        final Tenant tenant = of(UUID.randomUUID(), name);
+        final Tenant tenant = of(TenantId.random(), name);
         tenant.isNew = true;
         return tenant;
     }
 
-    static Tenant of(UUID id, String name) {
+    static Tenant of(TenantId id, String name) {
         final Tenant tenant = new Tenant();
         tenant.id = id;
         tenant.name = name;

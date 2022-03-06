@@ -7,7 +7,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import pl.recompiled.springtenantseparationdemo.security.user.PredefinedTenants;
 import pl.recompiled.springtenantseparationdemo.security.user.UserService;
 
 import static org.springframework.http.HttpStatus.OK;
@@ -15,7 +14,6 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Configuration
 @RequiredArgsConstructor
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;

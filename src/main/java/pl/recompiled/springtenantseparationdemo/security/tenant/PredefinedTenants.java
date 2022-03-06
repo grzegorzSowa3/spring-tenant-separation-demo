@@ -1,23 +1,11 @@
-package pl.recompiled.springtenantseparationdemo.security.user;
+package pl.recompiled.springtenantseparationdemo.security.tenant;
 
 import lombok.Data;
-import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.CreateUserDto;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Data
 @Component
@@ -27,16 +15,16 @@ public class PredefinedTenants {
     private List<PredefinedTenant> tenants;
 
     @Data
-    static class PredefinedTenant {
-        private UUID id;
+    public static class PredefinedTenant {
+        private String id;
         private String name;
         private PredefinedUser admin;
 
-        Tenant getTenant() {
-            return Tenant.of(id, name);
+        public TenantId getId() {
+            return TenantId.of(id);
         }
 
-        CreateUserDto getAdminUser() {
+        public CreateUserDto getAdminUser() {
             return admin.toDto();
         }
     }

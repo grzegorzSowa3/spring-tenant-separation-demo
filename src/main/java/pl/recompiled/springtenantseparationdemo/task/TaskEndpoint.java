@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.recompiled.springtenantseparationdemo.security.user.TenantContext;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,7 +19,7 @@ public class TaskEndpoint {
 
     @PostMapping
     public ResponseEntity<Void> createTask(@RequestBody CreateTaskDto dto) {
-        repository.save(Task.newInstance(TenantContext.getTenantId(), dto.getTitle()));
+        repository.save(Task.newInstance(dto.getTitle()));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

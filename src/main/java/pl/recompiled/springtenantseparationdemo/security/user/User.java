@@ -3,25 +3,20 @@ package pl.recompiled.springtenantseparationdemo.security.user;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.domain.Persistable;
+import org.springframework.data.domain.Example;
 import org.springframework.security.core.userdetails.UserDetails;
+import pl.recompiled.springtenantseparationdemo.security.tenant.TenantAdherentEntity;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.UserData;
 
 import javax.persistence.*;
 import java.util.Set;
-import java.util.UUID;
 
 @Entity
 @Table(name = "app_user")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-class User implements UserDetails, TenantAdherent, Persistable<UUID> {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+class User extends TenantAdherentEntity implements UserDetails {
 
-    @Id
-    private UUID id;
-    @Transient
-    private boolean isNew;
-    private String tenantId;
     @Column(unique = true)
     private String username;
     private String password;
@@ -29,14 +24,10 @@ class User implements UserDetails, TenantAdherent, Persistable<UUID> {
     @Convert(converter = AuthoritiesToStringConverter.class)
     private Set<Authority> authorities;
 
-    public static User newInstance(String tenantId,
-                                   String username,
+    public static User newInstance(String username,
                                    String password,
                                    Set<Authority> authorities) {
         final User user = new User();
-        user.id = UUID.randomUUID();
-        user.isNew = true;
-        user.tenantId = tenantId;
         user.username = username;
         user.password = password;
         user.authorities = authorities;
@@ -65,8 +56,14 @@ class User implements UserDetails, TenantAdherent, Persistable<UUID> {
 
     public UserData toData() {
         final UserData data = new UserData();
-        data.setId(id.toString());
+        data.setId(getId().toString());
         data.setUsername(username);
         return data;
+    }
+
+    static Example<User> byUsername(String username) {
+        User user = new User();
+        user.username = username;
+        return Example.of(user);
     }
 }

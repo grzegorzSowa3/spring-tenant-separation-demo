@@ -14,7 +14,10 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import pl.recompiled.springtenantseparationdemo.security.user.PredefinedTenants.PredefinedTenant;
+import pl.recompiled.springtenantseparationdemo.security.tenant.PredefinedTenants;
+import pl.recompiled.springtenantseparationdemo.security.tenant.PredefinedTenants.PredefinedTenant;
+import pl.recompiled.springtenantseparationdemo.security.tenant.TenantAdherent;
+import pl.recompiled.springtenantseparationdemo.security.tenant.TenantContext;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.CreateUserDto;
 
 import java.util.Arrays;
@@ -72,11 +75,11 @@ class TenantSeparationTests {
         result.andExpect(status().isCreated());
 
         //and: new user is created
-        Optional<? extends TenantAdherent> createdUser = userRepository.findByUsername(user.getUsername());
+        Optional<? extends TenantAdherent> createdUser = findUserForTenant(user.getUsername(), thisTenant);
         assert createdUser.isPresent();
 
         //and: it belongs to the same tenant
-        assert createdUser.get().getTenantId().equals(thisTenant.getId().toString());
+        assert createdUser.get().getTenantId().equals(thisTenant.getId());
 
         //and: user can login
         login(newUser()).andExpect(status().isOk());
@@ -100,7 +103,6 @@ class TenantSeparationTests {
         result.andExpect(jsonPath(userByUsername, testUsers1().get(0).getUsername()).exists());
         result.andExpect(jsonPath(userByUsername, testUsers1().get(1).getUsername()).exists());
 
-        // TODO: make it pass
         //and: admin gets no users from other tenant
         result.andExpect(jsonPath(userByUsername, testUsers2().get(0).getUsername()).doesNotExist());
         result.andExpect(jsonPath(userByUsername, testUsers2().get(1).getUsername()).doesNotExist());
@@ -115,7 +117,7 @@ class TenantSeparationTests {
 
         //and: user to delete
         CreateUserDto targetUser = testUsers1().get(0);
-        UUID targetUserId = userRepository.findByUsername(targetUser.getUsername()).get().getId();
+        UUID targetUserId = findUserForTenant(targetUser.getUsername(), thisTenant).get().getId();
 
         //when: admin attempts to delete user from the same tenant
         ResultActions result = mockMvc.perform(
@@ -139,21 +141,29 @@ class TenantSeparationTests {
 
         //and: user to delete from other tenant
         CreateUserDto targetUser = testUsers2().get(0);
-        UUID targetUserId = userRepository.findByUsername(targetUser.getUsername()).get().getId();
+        UUID targetUserId = findUserForTenant(targetUser.getUsername(), thisTenant).get().getId();
 
         //when: admin attempts to delete user from another tenant
         ResultActions result = mockMvc.perform(
                 delete("/users/{userId}", targetUserId)
                         .session(admin));
 
-        // TODO: make it pass
-        //then: admin gets response forbidden
-        result.andExpect(status().isForbidden());
+        //then: admin gets response no content
+        result.andExpect(status().isNoContent());
 
         //and: user is not deleted
         Optional<?> user = userRepository.findByUsername(targetUser.getUsername());
         assert user.isPresent();
 
+    }
+
+    private Optional<User> findUserForTenant(String username, PredefinedTenant tenant) {
+        try {
+            TenantContext.override(tenant.getId());
+            return userRepository.findByUsername(username);
+        } finally {
+            TenantContext.reset();
+        }
     }
 
 
