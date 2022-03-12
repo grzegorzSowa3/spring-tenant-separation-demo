@@ -17,7 +17,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import pl.recompiled.springtenantseparationdemo.security.tenant.PredefinedTenants;
 import pl.recompiled.springtenantseparationdemo.security.tenant.PredefinedTenants.PredefinedTenant;
 import pl.recompiled.springtenantseparationdemo.security.tenant.TenantAdherent;
-import pl.recompiled.springtenantseparationdemo.security.tenant.TenantContext;
 import pl.recompiled.springtenantseparationdemo.security.user.dto.CreateUserDto;
 
 import java.util.Arrays;
@@ -75,14 +74,38 @@ class TenantSeparationTests {
         result.andExpect(status().isCreated());
 
         //and: new user is created
-        Optional<? extends TenantAdherent> createdUser = findUserForTenant(user.getUsername(), thisTenant);
+        Optional<? extends TenantAdherent> createdUser = findUser(user.getUsername());
         assert createdUser.isPresent();
 
         //and: it belongs to the same tenant
         assert createdUser.get().getTenantId().equals(thisTenant.getId());
 
         //and: user can login
-        login(newUser()).andExpect(status().isOk());
+        login(user).andExpect(status().isOk());
+    }
+
+    @Test
+    public void userCanNotCreateUser() throws Exception {
+
+        //given: user under tenant
+        CreateUserDto user = newUser();
+        createUserForTenant(user, thisTenant);
+
+        //and: user logged in
+        MockHttpSession userSession = (MockHttpSession) login(user)
+                .andReturn().getRequest().getSession();
+
+        //when: tries to create user
+        CreateUserDto newUser = newUser();
+        ResultActions result = mockMvc.perform(createUserRequest(newUser)
+                .session(userSession));
+
+        //then: there is FORBIDDEN response
+        result.andExpect(status().isForbidden());
+
+        //and: new user is not created
+        Optional<? extends TenantAdherent> createdUser = findUser(newUser.getUsername());
+        assert createdUser.isEmpty();
     }
 
     @Test
@@ -117,7 +140,7 @@ class TenantSeparationTests {
 
         //and: user to delete
         CreateUserDto targetUser = testUsers1().get(0);
-        UUID targetUserId = findUserForTenant(targetUser.getUsername(), thisTenant).get().getId();
+        UUID targetUserId = findUser(targetUser.getUsername()).get().getId();
 
         //when: admin attempts to delete user from the same tenant
         ResultActions result = mockMvc.perform(
@@ -128,7 +151,7 @@ class TenantSeparationTests {
         result.andExpect(status().isNoContent());
 
         //and: user is deleted
-        Optional<?> deletedUser = userRepository.findByUsername(targetUser.getUsername());
+        Optional<?> deletedUser = userRepository.findOne(User.byUsername(targetUser.getUsername()));
         assert deletedUser.isEmpty();
 
     }
@@ -141,7 +164,7 @@ class TenantSeparationTests {
 
         //and: user to delete from other tenant
         CreateUserDto targetUser = testUsers2().get(0);
-        UUID targetUserId = findUserForTenant(targetUser.getUsername(), thisTenant).get().getId();
+        UUID targetUserId = findUser(targetUser.getUsername()).get().getId();
 
         //when: admin attempts to delete user from another tenant
         ResultActions result = mockMvc.perform(
@@ -152,18 +175,19 @@ class TenantSeparationTests {
         result.andExpect(status().isNoContent());
 
         //and: user is not deleted
-        Optional<?> user = userRepository.findByUsername(targetUser.getUsername());
+        Optional<?> user = userRepository.findOne(User.byUsername(targetUser.getUsername()));
         assert user.isPresent();
 
     }
 
-    private Optional<User> findUserForTenant(String username, PredefinedTenant tenant) {
-        try {
-            TenantContext.override(tenant.getId());
-            return userRepository.findByUsername(username);
-        } finally {
-            TenantContext.reset();
-        }
+    private void createUserForTenant(CreateUserDto dto, PredefinedTenant tenant) throws Exception {
+        MockHttpSession admin = loginAdmin(tenant);
+        mockMvc.perform(createUserRequest(dto)
+                .session(admin));
+    }
+
+    private Optional<User> findUser(String username) {
+        return userRepository.findOne(User.byUsername(username));
     }
 
 
@@ -174,7 +198,7 @@ class TenantSeparationTests {
     }
 
     private CreateUserDto newUser() {
-        return new CreateUserDto("new-user", "pass");
+        return new CreateUserDto("new-user-" + UUID.randomUUID(), "pass");
     }
 
     private void createTenantUsers() throws Exception {

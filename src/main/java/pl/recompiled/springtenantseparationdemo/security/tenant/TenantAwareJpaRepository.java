@@ -36,137 +36,81 @@ public class TenantAwareJpaRepository<T extends TenantAdherentEntity>
 
     @Override
     public List<T> findAll() {
-        if (isTenantAware()) {
-            return repository.findAll(example());
-        } else {
-            return repository.findAll();
-        }
+        return repository.findAll(example());
     }
 
     @Override
     public List<T> findAll(Sort sort) {
-        if (isTenantAware()) {
-            return repository.findAll(example(), sort);
-        } else {
-            return repository.findAll(sort);
-        }
+        return repository.findAll(example(), sort);
     }
 
     @Override
     public Page<T> findAll(Pageable pageable) {
-        if (isTenantAware()) {
-            return repository.findAll(example(), pageable);
-        } else {
-            return repository.findAll(pageable);
-        }
+        return repository.findAll(example(), pageable);
     }
 
     @Override
     public List<T> findAllById(Iterable<UUID> uuids) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("find all by ids unsupported");
-        } else {
-            return repository.findAllById(uuids);
-        }
+        throw new UnsupportedOperationException("find all by ids unsupported");
     }
 
     @Override
     public long count() {
-        if (isTenantAware()) {
-            return repository.count(example());
-        } else {
-            return repository.count();
-        }
+        return repository.count(example());
     }
 
     @Override
     public void deleteById(UUID uuid) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("delete by id unsupported");
-        } else {
-            repository.deleteById(uuid);
-        }
+        throw new UnsupportedOperationException("delete by id unsupported");
     }
 
     @Override
     public void delete(T entity) {
-        if (isTenantAware()) {
-            if (entity.getTenantId().equals(TenantContext.getTenantId())) {
-                repository.delete(entity);
-            }
-        } else {
+        if (entity.getTenantId().equals(TenantContext.getTenantId())) {
             repository.delete(entity);
         }
     }
 
     @Override
     public void deleteAllById(Iterable<? extends UUID> uuids) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("delete by id unsupported");
-        } else {
-            repository.deleteAllById(uuids);
-        }
+        throw new UnsupportedOperationException("delete by id unsupported");
     }
 
     @Override
     public void deleteAll() {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("delete all unsupported");
-        } else {
-            repository.deleteAll();
-        }
+        throw new UnsupportedOperationException("delete all unsupported");
     }
 
     @Override
     public void deleteAll(Iterable<? extends T> entities) {
-        if (isTenantAware()) {
-            List<? extends T> tenantEntities = StreamSupport.stream(entities.spliterator(), false)
-                    .filter(entity -> entity.getTenantId().equals(TenantContext.getTenantId()))
-                    .collect(Collectors.toList());
-            repository.deleteAll(tenantEntities);
-        } else {
-            repository.deleteAll(entities);
-        }
+        List<? extends T> tenantEntities = StreamSupport.stream(entities.spliterator(), false)
+                .filter(entity -> entity.getTenantId().equals(TenantContext.getTenantId()))
+                .collect(Collectors.toList());
+        repository.deleteAll(tenantEntities);
     }
 
     @Override
     public <S extends T> S save(S entity) {
-        if (isTenantAware()) {
-            if (entity.getId() == null) {
-                entity.setId(UUID.randomUUID());
-                entity.setNew(true);
-            }
-            return repository.save(tenant(entity));
-        } else {
-            return repository.save(entity);
+        if (entity.getId() == null) {
+            entity.setId(UUID.randomUUID());
+            entity.setNew(true);
         }
+        return repository.save(tenant(entity));
     }
 
     @Override
     public <S extends T> List<S> saveAll(Iterable<S> entities) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("save all unsupported");
-        } else {
-            return repository.saveAll(entities);
-        }
+        throw new UnsupportedOperationException("save all unsupported");
     }
 
     @Override
     public Optional<T> findById(UUID uuid) {
-        if (isTenantAware()) {
-            return repository.findOne(Example.of(instance(uuid)));
-        } else {
-            return repository.findById(uuid);
-        }
+        return repository.findOne(Example.of(instance(uuid)));
     }
 
     @Override
     public boolean existsById(UUID uuid) {
-        if (isTenantAware()) {
-            return exists(Example.of(instance(uuid)));
-        } else {
-            return repository.existsById(uuid);
-        }
+        return exists(Example.of(instance(uuid)));
     }
 
     @Override
@@ -176,189 +120,109 @@ public class TenantAwareJpaRepository<T extends TenantAdherentEntity>
 
     @Override
     public <S extends T> S saveAndFlush(S entity) {
-        if (isTenantAware()) {
-            if (entity.getId() == null) {
-                entity.setId(UUID.randomUUID());
-                entity.setNew(true);
-            }
-            return repository.saveAndFlush(tenant(entity));
-        } else {
-            return repository.saveAndFlush(entity);
+        if (entity.getId() == null) {
+            entity.setId(UUID.randomUUID());
+            entity.setNew(true);
         }
+        return repository.saveAndFlush(tenant(entity));
     }
 
     @Override
     public <S extends T> List<S> saveAllAndFlush(Iterable<S> entities) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("save all unsupported");
-        } else {
-            return repository.saveAllAndFlush(entities);
-        }
+        throw new UnsupportedOperationException("save all unsupported");
     }
 
     @Override
     public void deleteAllInBatch(Iterable<T> entities) {
-        if (isTenantAware()) {
-            List<T> tenantEntities = StreamSupport.stream(entities.spliterator(), false)
-                    .filter(entity -> entity.getTenantId().equals(TenantContext.getTenantId()))
-                    .collect(Collectors.toList());
-            repository.deleteAllInBatch(tenantEntities);
-        } else {
-            repository.deleteAllInBatch(entities);
-        }
+        List<T> tenantEntities = StreamSupport.stream(entities.spliterator(), false)
+                .filter(entity -> entity.getTenantId().equals(TenantContext.getTenantId()))
+                .collect(Collectors.toList());
+        repository.deleteAllInBatch(tenantEntities);
     }
 
     @Override
     public void deleteAllByIdInBatch(Iterable<UUID> uuids) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("delete by id unsupported");
-        } else {
-            repository.deleteAllByIdInBatch(uuids);
-        }
+        throw new UnsupportedOperationException("delete by id unsupported");
     }
 
     @Override
     public void deleteAllInBatch() {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("delete all unsupported");
-        } else {
-            repository.deleteAllInBatch();
-        }
+        throw new UnsupportedOperationException("delete all unsupported");
     }
 
     @Override
     public T getOne(UUID uuid) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("get one unsupported");
-        } else {
-            return repository.getOne(uuid);
-        }
+        throw new UnsupportedOperationException("get one unsupported");
     }
 
     @Override
     public T getById(UUID uuid) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("get by id unsupported");
-        } else {
-            return repository.getById(uuid);
-        }
+        throw new UnsupportedOperationException("get by id unsupported");
     }
 
     @Override
     public <S extends T> Optional<S> findOne(Example<S> example) {
-        if (isTenantAware()) {
-            return repository.findOne(tenant(example));
-        } else {
-            return repository.findOne(example);
-        }
+        return repository.findOne(tenant(example));
     }
 
     @Override
     public <S extends T> List<S> findAll(Example<S> example) {
-        if (isTenantAware()) {
-            return repository.findAll(tenant(example));
-        } else {
-            return repository.findAll(example);
-        }
+        return repository.findAll(tenant(example));
     }
 
     @Override
     public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-        if (isTenantAware()) {
-            return repository.findAll(tenant(example));
-        } else {
-            return repository.findAll(example, sort);
-        }
+        return repository.findAll(tenant(example));
     }
 
     @Override
     public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
-        if (isTenantAware()) {
-            return repository.findAll(tenant(example), pageable);
-        } else {
-            return repository.findAll(example, pageable);
-        }
+        return repository.findAll(tenant(example), pageable);
     }
 
     @Override
     public <S extends T> long count(Example<S> example) {
-        if (isTenantAware()) {
-            return repository.count(tenant(example));
-        } else {
-            return repository.count(example);
-        }
+        return repository.count(tenant(example));
     }
 
     @Override
     public <S extends T> boolean exists(Example<S> example) {
-        if (isTenantAware()) {
-            return repository.exists(tenant(example));
-        } else {
-            return repository.exists(example);
-        }
+        return repository.exists(tenant(example));
     }
 
     @Override
     public <S extends T, R> R findBy(Example<S> example, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
-        if (isTenantAware()) {
-            return repository.findBy(tenant(example), queryFunction);
-        } else {
-            return repository.findBy(example, queryFunction);
-        }
+        return repository.findBy(tenant(example), queryFunction);
     }
 
     @Override
     public Optional<T> findOne(Specification<T> spec) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("specifications unsupported");
-        } else {
-            return repository.findOne(spec);
-        }
+        throw new UnsupportedOperationException("specifications unsupported");
     }
 
     @Override
     public List<T> findAll(Specification<T> spec) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("specifications unsupported");
-        } else {
-            return repository.findAll(spec);
-        }
+        throw new UnsupportedOperationException("specifications unsupported");
     }
 
     @Override
     public Page<T> findAll(Specification<T> spec, Pageable pageable) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("specifications unsupported");
-        } else {
-            return repository.findAll(spec, pageable);
-        }
+        throw new UnsupportedOperationException("specifications unsupported");
     }
 
     @Override
     public List<T> findAll(Specification<T> spec, Sort sort) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("specifications unsupported");
-        } else {
-            return repository.findAll(spec, sort);
-        }
+        throw new UnsupportedOperationException("specifications unsupported");
     }
 
     @Override
     public long count(Specification<T> spec) {
-        if (isTenantAware()) {
-            throw new UnsupportedOperationException("specifications unsupported");
-        } else {
-            return repository.count(spec);
-        }
+        throw new UnsupportedOperationException("specifications unsupported");
     }
 
     @Override
     public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
         repository.setRepositoryMethodMetadata(crudMethodMetadata);
-    }
-
-    private boolean isTenantAware() {
-        return TenantAdherentEntity.class.isAssignableFrom(metadata.getJavaType());
     }
 
     private Example<T> example() {
